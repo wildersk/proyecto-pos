@@ -1,7 +1,10 @@
-const projectDir = '/Users/eswin/Desktop/PROYESTO_POS';
-const { createServer } = await import(projectDir + '/node_modules/vite/dist/node/index.js');
-const React = await import(projectDir + '/node_modules/react/index.js');
-const ReactDOMServer = await import(projectDir + '/node_modules/react-dom/server.node.js');
+import { pathToFileURL } from 'node:url';
+import path from 'node:path';
+const projectDir = process.cwd();
+const toUrl = (p) => pathToFileURL(path.resolve(projectDir, p)).href;
+const { createServer } = await import(toUrl('node_modules/vite/dist/node/index.js'));
+const React = await import(toUrl('node_modules/react/index.js'));
+const ReactDOMServer = await import(toUrl('node_modules/react-dom/server.node.js'));
 
 // Setup browser mocks for SSR rendering of interactive components
 globalThis.window = globalThis;

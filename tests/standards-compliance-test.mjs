@@ -59,12 +59,15 @@ function recordTest(category, name, passed, detail = '') {
   }
 }
 
+// Token JWT del administrador, se obtiene al iniciar las pruebas de integración
+let authToken = null;
+
 // HTTP request helper
 function request(method, path, body = null, headers = {}) {
   return new Promise((resolve, reject) => {
     const url = new URL(path, API_BASE);
     const postData = body ? (typeof body === 'string' ? body : JSON.stringify(body)) : null;
-    const reqHeaders = { ...headers };
+    const reqHeaders = { ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}), ...headers };
     if (postData && !reqHeaders['Content-Type']) {
       reqHeaders['Content-Type'] = typeof body === 'string' ? 'text/plain' : 'application/json';
     }
@@ -199,6 +202,16 @@ async function runFormalComplianceTests() {
   // interfaz de comunicación Frontend <-> Backend <-> BDD.
   // ========================================================================
   console.log(`\n${BOLD}${CYAN}▶ 2. PRUEBAS DE INTEGRACIÓN (Integration Testing - JSON / SOAP / DB Cascades)${RESET}`);
+
+  // El backend no crea usuarios: usar el administrador insertado en la base de datos
+  const resLogin = await request('POST', '/api/usuarios/login', {
+    username: process.env.POS_TEST_ADMIN_USER || 'Administrador',
+    password: process.env.POS_TEST_ADMIN_PASSWORD || '12345'
+  });
+  if (resLogin.status !== 200) {
+    console.log(`  ${YELLOW}→ No se pudo iniciar sesión como administrador (defina POS_TEST_ADMIN_USER / POS_TEST_ADMIN_PASSWORD)${RESET}`);
+  }
+  authToken = resLogin.body?.token ?? null;
 
   // IT-01: Deserialización de payload JSON de Solicitud (React -> API REST Jackson)
   const jsonPayload = {
@@ -355,10 +368,12 @@ async function runFormalComplianceTests() {
 
   // OWASP-AUTH-01: Control de Acceso y Autenticación en Endpoints
   // Auditoría: ¿Existen tokens JWT o los endpoints aceptan llamadas anónimas?
-  // Hallazgo: Spring Boot no tiene Spring Security habilitado; endpoints son públicos
+  const resAnon = await request('GET', '/api/solicitudes', null, { Authorization: '' });
+  const resUsersAnon = await request('GET', '/api/usuarios', null, { Authorization: '' });
+  const resAuth = await request('GET', '/api/solicitudes');
   recordTest('owasp', 'OWASP-AUTH-01: Autenticación por Tokens (JWT) y Control de Acceso RBAC en Backend',
-    false,
-    'DEFICIT: Todos los endpoints REST son públicos y carecen de validación de JWT o cabeceras de autorización'
+    resAnon.status === 401 && resUsersAnon.status === 401 && resAuth.status === 200,
+    'DEFICIT: Los endpoints REST aceptan llamadas anónimas sin token JWT'
   );
 
   // OWASP-CREDS-01: Exposición de contraseñas en texto plano
@@ -409,9 +424,13 @@ async function runFormalComplianceTests() {
   );
 
   // PCI-CRYPTO-01: Cifrado de credenciales en reposo (BCrypt)
-  // Hallazgo: Las contraseñas en backend están en texto claro "12345"
+  // Auditoría estática: el backend debe registrar BCrypt y comparar contraseñas con el encoder
+  const backendSrc = path.join(process.cwd(), 'backend/src/main/java/com/pos/backend');
+  const readSrc = (rel) => { try { return fs.readFileSync(path.join(backendSrc, rel), 'utf8'); } catch { return ''; } };
+  const usesBcrypt = readSrc('security/SecurityConfig.java').includes('new BCryptPasswordEncoder()')
+    && readSrc('controller/UsuarioController.java').includes('passwordEncoder.matches(');
   recordTest('pcidss', 'PCI-CRYPTO-01: Cifrado de credenciales en reposo mediante funciones hash robustas (BCrypt/Argon2)',
-    false,
+    usesBcrypt,
     'DEFICIT: Las contraseñas en base de datos están almacenadas en texto plano sin salt ni hash'
   );
 

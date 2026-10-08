@@ -59,7 +59,13 @@ const server = http.createServer(async (req, res) => {
       const user = usuarios.find(u => u.username.toLowerCase() === (body.username || '').toLowerCase() && u.password === body.password);
       if (user) {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ id: user.id, username: user.username, role: user.role }));
+        // Mismo formato que el backend real; el mock no valida el token en las demás rutas
+        res.end(JSON.stringify({
+          token: 'mock-token',
+          tokenType: 'Bearer',
+          expiresIn: 28800,
+          usuario: { id: user.id, username: user.username, role: user.role }
+        }));
       } else {
         res.writeHead(401, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ message: 'Credenciales inválidas' }));
