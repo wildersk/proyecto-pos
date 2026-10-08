@@ -4,6 +4,7 @@ import PanelCard from './PanelCard';
 import { DocumentRow } from './Stage1Panel';
 import { Badge, Callout, Field, KV } from '../ui';
 import { SALE_TYPES, isValidAffiliate, randomDigits, formatDateTime } from '../../lib/workflow';
+import { apiFetch } from '../../lib/api';
 
 function ReviewToggle({ value, onChange, disabled }) {
   return (
@@ -55,7 +56,7 @@ export default function Stage2Panel({ request, readOnly, actor, applyChange, toa
         const backendId = backendIdMatch[1];
         const firstAffiliate = Object.values(affiliates).find(v => v);
         
-        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/afiliados`, {
+        await apiFetch(`/api/afiliados`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -64,7 +65,7 @@ export default function Stage2Panel({ request, readOnly, actor, applyChange, toa
           })
         });
 
-        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/solicitudes/${backendId}/estado`, {
+        await apiFetch(`/api/solicitudes/${backendId}/estado`, {
           method: 'PUT',
           headers: { 'Content-Type': 'text/plain' },
           body: 'Aprobada'

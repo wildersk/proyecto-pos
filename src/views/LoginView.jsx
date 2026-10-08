@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CreditCard, LogIn, Lock, User } from 'lucide-react';
+import { apiFetch, setAuthToken } from '../lib/api';
 
 export default function LoginView({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -13,15 +14,16 @@ export default function LoginView({ onLogin }) {
     setLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/usuarios/login`, {
+      const res = await apiFetch(`/api/usuarios/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
 
       if (res.ok) {
-        const user = await res.json();
-        onLogin(user);
+        const { token, usuario } = await res.json();
+        setAuthToken(token);
+        onLogin(usuario);
       } else {
         setError('Usuario o contraseña incorrectos');
       }
@@ -55,7 +57,7 @@ export default function LoginView({ onLogin }) {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full rounded-lg border border-slate-300 py-2.5 pl-10 pr-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" 
-                  placeholder="Administrador, Etapa1..."
+                  placeholder="Nombre de usuario"
                 />
               </div>
             </div>

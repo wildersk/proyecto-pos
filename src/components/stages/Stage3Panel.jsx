@@ -3,6 +3,7 @@ import { Cpu, CheckCircle2, Circle, ArrowRight, Wand2, Info } from 'lucide-react
 import PanelCard from './PanelCard';
 import { Badge, Callout, Field } from '../ui';
 import { SALE_TYPES, SYSTEMS, getHardware } from '../../lib/workflow';
+import { apiFetch } from '../../lib/api';
 
 const pad = (n, len) => String(n).padStart(len, '0');
 
@@ -95,12 +96,12 @@ export default function Stage3Panel({ request, readOnly, applyChange, toast }) {
         const tid = (p.vhq?.terminals && Object.values(p.vhq.terminals)[0]) || 
                     (p.mipos?.terminals && Object.values(p.mipos.terminals)[0]) || "TID-001";
 
-        const resAfiliados = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/afiliados`);
+        const resAfiliados = await apiFetch(`/api/afiliados`);
         const afiliados = await resAfiliados.json();
         const miAfiliado = afiliados.find(a => a.solicitud && a.solicitud.id === parseInt(backendId, 10));
 
         if (miAfiliado) {
-          await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/terminales`, {
+          await apiFetch(`/api/terminales`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

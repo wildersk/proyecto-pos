@@ -3,6 +3,7 @@ import { CheckCircle2, MapPin, CalendarDays, User, BadgeCheck } from 'lucide-rea
 import PanelCard from './PanelCard';
 import { Badge, Field, KV } from '../ui';
 import { SALE_TYPES, SHIFTS, getHardware, formatDate, formatDateTime } from '../../lib/workflow';
+import { apiFetch } from '../../lib/api';
 
 const CONNECTION = { inalambrico: 'Señal celular / GPRS verificada', ip: 'Conexión LAN verificada', mipos: 'Lector enlazado por Bluetooth al correo registrado', hit: 'Conexión al host verificada' };
 
@@ -30,12 +31,12 @@ export default function Stage5Panel({ request, readOnly, actor, applyChange, toa
       const backendIdMatch = request.id.match(/^REQ-B(\d+)$/);
       if (backendIdMatch) {
         const backendId = parseInt(backendIdMatch[1], 10);
-        const resOrdenes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/ordenes-despacho`);
+        const resOrdenes = await apiFetch(`/api/ordenes-despacho`);
         const ordenes = await resOrdenes.json();
         const miOrden = ordenes.find(o => o.terminal && o.terminal.afiliado && o.terminal.afiliado.solicitud && o.terminal.afiliado.solicitud.id === backendId);
 
         if (miOrden) {
-          await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/ordenes-despacho/${miOrden.id}/estado`, {
+          await apiFetch(`/api/ordenes-despacho/${miOrden.id}/estado`, {
             method: 'PUT',
             headers: { 'Content-Type': 'text/plain' },
             body: 'Confirmacion de Instalacion'

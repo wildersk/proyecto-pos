@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Network, FileCode2, RotateCcw, CreditCard, Users } from 'lucide-react';
+import { LayoutDashboard, Network, RotateCcw, CreditCard, Users } from 'lucide-react';
 import { STAGES } from '../lib/workflow';
 
 function Item({ id, icon: Icon, label, hint, count, unread, view, setView }) {
@@ -74,7 +74,6 @@ export default function Sidebar({ view, setView, role, user, onLogout, requests,
           <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Plataforma</p>
           <div className="space-y-0.5">
             <Item view={view} setView={setView} id="systems" icon={Network} label="Sistemas integrados" hint="VHQ · AS400 · Mipos · CSP" />
-            <Item view={view} setView={setView} id="architecture" icon={FileCode2} label="Propuesta técnica" hint="Arquitectura y estándares" />
             {role === 'admin' && (
               <Item view={view} setView={setView} id="users" icon={Users} label="Gestión de Usuarios" hint="Control de accesos y roles" />
             )}

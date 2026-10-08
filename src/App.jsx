@@ -4,7 +4,6 @@ import Topbar from './components/Topbar';
 import DashboardView from './views/DashboardView';
 import StageWorkspace from './views/StageWorkspace';
 import LegacySystemsViewer from './components/LegacySystemsViewer';
-import TechArchitectureView from './components/TechArchitectureView';
 import RequestFormModal from './components/RequestFormModal';
 import RequestDetailDrawer from './components/RequestDetailDrawer';
 import DocumentViewerModal from './components/DocumentViewerModal';
@@ -13,6 +12,7 @@ import UsersManagementView from './views/UsersManagementView';
 import { Toasts } from './components/ui';
 import { initialRequests, initialNotifications } from './data/mockRequests';
 import { getStage, nowISO, newRequestId } from './lib/workflow';
+import { apiFetch, setAuthToken, setUnauthorizedHandler } from './lib/api';
 
 const STORAGE_KEY = 'pos-central-demo-v2';
 
@@ -48,6 +48,19 @@ export default function App() {
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4200);
   }, []);
 
+  const logout = useCallback(() => {
+    setAuthToken(null);
+    setCurrentUser(null);
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      logout();
+      toast('Sesión expirada', 'Inicia sesión nuevamente.', 'red');
+    });
+    return () => setUnauthorizedHandler(null);
+  }, [logout, toast]);
+
   // Aplica un cambio a una gestión, registra historial y, si aplica, notifica a la siguiente etapa
   const applyChange = useCallback((id, patch, { action, stage, notify } = {}) => {
     setData((prev) => {
@@ -67,7 +80,7 @@ export default function App() {
   const createRequest = async (req, sendNow) => {
     let backendId = newRequestId(requests);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/solicitudes`, {
+      const response = await apiFetch(`/api/solicitudes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -133,7 +146,7 @@ export default function App() {
         setView={setView} 
         role={role} 
         user={currentUser}
-        onLogout={() => setCurrentUser(null)} 
+        onLogout={logout}
         requests={requests} 
         notifications={notifications} 
         onReset={resetDemo} 
@@ -184,7 +197,6 @@ export default function App() {
           )}
 
           {view === 'systems' && <LegacySystemsViewer />}
-          {view === 'architecture' && <TechArchitectureView />}
         </main>
 
         <footer className="border-t border-slate-200 bg-white px-8 py-3 text-[11px] text-slate-500">

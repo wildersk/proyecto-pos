@@ -6,7 +6,6 @@ import { Avatar } from './ui';
 const TITLES = {
   dashboard: { title: 'Panel general', subtitle: 'Visión consolidada de todas las gestiones POS' },
   systems: { title: 'Sistemas integrados', subtitle: 'Sistemas legados unificados en la plataforma' },
-  architecture: { title: 'Propuesta técnica', subtitle: 'Arquitectura, estándares y estimación del proyecto' },
   users: { title: 'Gestión de Usuarios', subtitle: 'Control de accesos y roles del sistema' },
 };
 
@@ -29,6 +28,9 @@ export default function Topbar({ currentUser, view, setView, currentStage, searc
   const unread = visible.filter((n) => !n.read).length;
   const user = stage ? { name: stage.user, role: stage.role } : { name: 'Administrador General', role: 'Supervisor de operaciones' };
 
+  const isAdmin = currentUser?.role === 'admin';
+  const userRole = isAdmin ? 'admin' : Number(currentUser?.role);
+
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-4 px-6 lg:px-8">
@@ -38,10 +40,14 @@ export default function Topbar({ currentUser, view, setView, currentStage, searc
             onChange={(e) => setView(e.target.value)}
             className="input mb-1 h-8 w-auto text-xs lg:hidden"
           >
-            <option value="dashboard">Panel general</option>
-            {STAGES.map((s) => <option key={s.id} value={`stage-${s.id}`}>Etapa {s.id} · {s.name}</option>)}
+            {isAdmin && <option value="dashboard">Panel general</option>}
+            {STAGES.filter((s) => isAdmin || userRole === s.id).map((s) => (
+              <option key={s.id} value={`stage-${s.id}`}>
+                Etapa {s.id} · {s.name}
+              </option>
+            ))}
             <option value="systems">Sistemas integrados</option>
-            <option value="architecture">Propuesta técnica</option>
+            {isAdmin && <option value="users">Gestión de Usuarios</option>}
           </select>
           <h1 className="truncate text-[15px] font-semibold text-slate-900">{heading.title}</h1>
           <p className="hidden truncate text-xs text-slate-500 sm:block">{heading.subtitle}</p>
@@ -114,7 +120,7 @@ export default function Topbar({ currentUser, view, setView, currentStage, searc
             <Avatar name={currentUser.role === 'admin' ? 'Admin' : `Etapa ${currentUser.role}`} size="sm" />
             <div className="leading-tight">
               <p className="text-xs font-semibold text-slate-900">
-                {currentUser.role === 'admin' ? 'Administrador' : getStage(Number(currentUser.role)).name}
+                {currentUser.role === 'admin' ? 'Administrador' : (getStage(Number(currentUser.role))?.name || `Rol ${currentUser.role}`)}
               </p>
             </div>
           </div>

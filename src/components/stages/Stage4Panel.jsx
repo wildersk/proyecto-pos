@@ -3,6 +3,7 @@ import { Truck, CalendarDays, ArrowRight, Sun, Sunset } from 'lucide-react';
 import PanelCard from './PanelCard';
 import { Badge, Field, KV } from '../ui';
 import { TECHNICIANS, SHIFTS, isBusinessDay, nextBusinessDays, formatDate, formatDateTime } from '../../lib/workflow';
+import { apiFetch } from '../../lib/api';
 
 export default function Stage4Panel({ request, readOnly, applyChange, toast }) {
   const suggestions = nextBusinessDays(5);
@@ -27,12 +28,12 @@ export default function Stage4Panel({ request, readOnly, applyChange, toast }) {
       const backendIdMatch = request.id.match(/^REQ-B(\d+)$/);
       if (backendIdMatch) {
         const backendId = parseInt(backendIdMatch[1], 10);
-        const resTerminales = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/terminales`);
+        const resTerminales = await apiFetch(`/api/terminales`);
         const terminales = await resTerminales.json();
         const miTerminal = terminales.find(t => t.afiliado && t.afiliado.solicitud && t.afiliado.solicitud.id === backendId);
 
         if (miTerminal) {
-          await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/ordenes-despacho`, {
+          await apiFetch(`/api/ordenes-despacho`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
