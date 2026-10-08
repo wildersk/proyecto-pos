@@ -9,7 +9,6 @@ import java.util.Random;
 
 @RestController
 @RequestMapping("/api/afiliados")
-@CrossOrigin(origins = "*")
 public class AfiliadoController {
 
     @Autowired

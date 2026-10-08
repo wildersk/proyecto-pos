@@ -8,7 +8,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/terminales")
-@CrossOrigin(origins = "*")
 public class TerminalController {
 
     @Autowired

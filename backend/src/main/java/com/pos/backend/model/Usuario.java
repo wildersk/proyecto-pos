@@ -1,7 +1,9 @@
 package com.pos.backend.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.ToString;
 
 @Data
 @Entity
@@ -14,6 +16,9 @@ public class Usuario {
     @Column(unique = true, nullable = false)
     private String username;
 
+    // Hash BCrypt; nunca se serializa ni aparece en logs
+    @JsonIgnore
+    @ToString.Exclude
     @Column(nullable = false)
     private String password;
 

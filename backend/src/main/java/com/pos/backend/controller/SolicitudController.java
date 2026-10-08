@@ -8,7 +8,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/solicitudes")
-@CrossOrigin(origins = "*")
 public class SolicitudController {
 
     @Autowired
