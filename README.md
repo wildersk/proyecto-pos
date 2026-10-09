@@ -207,7 +207,14 @@ cd backend
 docker exec pos_postgres psql -U pos_user -d pos_db -c "SELECT username, role FROM usuarios;"
 ```
 
-Si la tabla no está vacía pero no reconoces a esos usuarios, empieza de cero con `docker compose down -v` seguido de `docker compose up -d` y reinicia el backend.
+Si la tabla no está vacía pero no reconoces a esos usuarios, o si en los logs del backend ves el error `Encoded password does not look like BCrypt` (esto ocurre si usaste el `mock-backend.js` previamente o se guardaron contraseñas en texto plano), empieza de cero borrando el volumen:
+```bash
+docker compose down -v
+docker compose up -d
+```
+y finalmente reinicia el backend de Java.
+
+**Nota sobre `mock-backend.js`**: Si estás ejecutando `node mock-backend.js` en el puerto 8080, asegúrate de detenerlo antes de iniciar el backend real de Spring Boot, de lo contrario ambos chocarán en el puerto o podrías tener comportamientos inesperados con las credenciales de prueba.
 
 **El puerto 5433 ya está ocupado.** Cambia el mapeo en `backend/docker-compose.yml` (por ejemplo a `"5434:5432"`) y define `POS_DB_URL` con el puerto nuevo.
 
